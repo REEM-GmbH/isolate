@@ -293,9 +293,14 @@ class IsolateService extends Component
 			// Get the ID of the entry a user is accessing
 			preg_match("/^\d*/", $segments[2], $matches);
 			
+			$asset_id = intval($matches[0]);
+			if(!($asset_id > 0)) {
+				return true;
+			}
+			
 			// Compare the ID to the list of IDs a user *can* access
 			$accessibleIds = $this->getUserAssetIds($userId);
-			$canAccess = in_array($matches[0], $accessibleIds);
+			$canAccess = in_array($asset_id, $accessibleIds);
 			
 			if (!$canAccess)
 			{
