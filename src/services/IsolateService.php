@@ -366,43 +366,19 @@ class IsolateService extends Component
             ->andFilterWhere(["iso.sectionId" => $sectionId])
             ->all();
 
-        $isolatedSections = null;
         $isolatedEntryIds = [];
 
         // If the user is isolated we need to get the sections they are isolated into and the IDs of the entries they are isolated into
         if (count($isolatedRecords) > 0)
         {
-            $isolatedSections = array_map(function($record) {
-                return $record['sectionId'];
-            }, $isolatedRecords);
 
             $isolatedEntryIds = array_map(function($record) {
                 return $record['entryId'];
             }, $isolatedRecords);
 
-            $isolatedSections = array_values(array_unique($isolatedSections));
         }
-
-        $ids = [];
-
-        $secQuery = new Query();
-
-        // Find any sections the user has access to that are *not* part of their isolated sections
-        // We need to display all of these
-        $sectionEntries = $secQuery->select(["ent.id"])
-            ->from("{{%entries}} ent")
-            ->leftJoin("{{%sections}} sec", "{{ent}}.{{sectionId}} = {{sec}}.{{id}}")
-            ->filterWhere(["ent.sectionId" => $sectionId])
-            ->andFilterWhere(["not", ["ent.sectionId" => $isolatedSections]])
-            ->all();
-        foreach ($sectionEntries as $entry)
-        {
-            $ids[] = $entry['id'];
-        }
-
-        $ids = array_merge($ids, $isolatedEntryIds);
-
-        return $ids;
+		
+        return $isolatedEntryIds;
     }
 	
 	/**
