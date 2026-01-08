@@ -191,68 +191,71 @@ class IsolateService extends Component
      * @throws \Throwable
      * @throws \yii\db\StaleObjectException
      */
-    public function modifyRecords(int $userId, int $sectionId, array $entries)
-    {
-        /**
-         * Remove entries that were de-selected
-         */
-        $existingEntries = IsolateRecord::findAll([
-            "userId" => $userId,
-            "sectionId" => $sectionId
-        ]);
-
-        $existingEntries = array_map(function($permission) {
-            return $permission->entryId;
-        }, $existingEntries);
-
-        $entriesToRemove = array_values(array_diff($existingEntries, $entries));
-
-        foreach ($entriesToRemove as $entryId)
-        {
-            $record = IsolateRecord::findOne([
-                "entryId" => $entryId
-            ]);
-
-            $record->delete();
-        }
-
-        /**
-         * Add entries that are new selections
-         */
-        $entriesToAdd = array_values(array_diff($entries, $existingEntries));
-
-        foreach ($entriesToAdd as $entryId)
-        {
-            $record = new IsolateRecord;
-            $record->setAttribute('userId', $userId);
-            $record->setAttribute('sectionId', $sectionId);
-            $record->setAttribute('entryId', $entryId);
-            $record->save();
-        }
-
-        // // Get the total number of entries a user now has access to
-        // $totalEntries = (int) IsolateRecord::find(["userId" => $userId])->count();
+	public function modifyRecords(int $userId, int $sectionId, array $entries)
+	{
+		/**
+		 * Remove entries that were de-selected
+		 */
+		$existingEntries = IsolateRecord::findAll([
+			"userId" => $userId,
+			"sectionId" => $sectionId
+		]);
+		
+		$existingEntries = array_map(function($permission) {
+			return $permission->entryId;
+		}, $existingEntries);
+		
+		$entriesToRemove = array_values(array_diff($existingEntries, $entries));
+		
+		foreach ($entriesToRemove as $entryId) {
+			$record = IsolateRecord::findOne([
+				"userId"    => $userId,
+				"sectionId" => $sectionId,
+				"entryId"   => $entryId,
+			]);
+			
+			if ($record) {
+				$record->delete();
+			}
+		}
+		
+		/**
+		 * Add entries that are new selections
+		 */
+		$entriesToAdd = array_values(array_diff($entries, $existingEntries));
+		
+		foreach ($entriesToAdd as $entryId)
+		{
+			$record = new IsolateRecord;
+			$record->setAttribute('userId', $userId);
+			$record->setAttribute('sectionId', $sectionId);
+			$record->setAttribute('entryId', $entryId);
+			$record->save();
+		}
+		
+		// // Get the total number of entries a user now has access to
+		// $totalEntries = (int) IsolateRecord::find(["userId" => $userId])->count();
 		//
-        // /**
-        //  * If a user has been assigned permissions, enable Isolate automatically to make the workflow contained in one place
-        //  */
-        // if ($totalEntries > 0) {
-        //     $usersPermissions = Craft::$app->userPermissions->getPermissionsByUserId($userId);
-        //     $usersPermissions[] = "accessplugin-isolate";
-        //     Craft::$app->userPermissions->saveUserPermissions($userId, $usersPermissions);
-        // }
+		// /**
+		//  * If a user has been assigned permissions, enable Isolate automatically to make the workflow contained in one place
+		//  */
+		// if ($totalEntries > 0) {
+		//     $usersPermissions = Craft::$app->userPermissions->getPermissionsByUserId($userId);
+		//     $usersPermissions[] = "accessplugin-isolate";
+		//     Craft::$app->userPermissions->saveUserPermissions($userId, $usersPermissions);
+		// }
 		//
-        // /**
-        //  * If a user has no assigned permissions disable their access to Isolate
-        //  */
-        // if ($totalEntries === 0) {
-        //     $usersPermissions = Craft::$app->userPermissions->getPermissionsByUserId($userId);
-        //     $usersPermissions = array_filter($usersPermissions, function($permission) {
-        //         return $permission !== "accessplugin-isolate";
-        //     });
-        //     Craft::$app->userPermissions->saveUserPermissions($userId, $usersPermissions);
-        // }
-    }
+		// /**
+		//  * If a user has no assigned permissions disable their access to Isolate
+		//  */
+		// if ($totalEntries === 0) {
+		//     $usersPermissions = Craft::$app->userPermissions->getPermissionsByUserId($userId);
+		//     $usersPermissions = array_filter($usersPermissions, function($permission) {
+		//         return $permission !== "accessplugin-isolate";
+		//     });
+		//     Craft::$app->userPermissions->saveUserPermissions($userId, $usersPermissions);
+		// }
+	}
 
     /**
      * Is the user isolated?
@@ -468,13 +471,15 @@ class IsolateService extends Component
 		
 		$entriesToRemove = array_values(array_diff($existingEntries, $assetIds));
 		
-		foreach ($entriesToRemove as $entryId)
-		{
+		foreach ($entriesToRemove as $assetId) {
 			$record = IsolateAssetRecord::findOne([
-				"assetsId" => $entryId
+				"userId"   => $userId,
+				"assetsId" => $assetId,
 			]);
 			
-			$record->delete();
+			if ($record) {
+				$record->delete();
+			}
 		}
 		
 		/**
